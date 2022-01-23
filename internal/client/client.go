@@ -1,16 +1,14 @@
 package client
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/blakewilliams/remote-development-manager/internal/server"
 )
@@ -18,8 +16,9 @@ import (
 type Client struct {
 	// Determines if command should connect locally via unix socket or if port
 	// should be forwarded via ssh
-	runType string
-	conn    net.Conn
+	runType    string
+	conn       net.Conn
+	httpClient http.Client
 }
 
 func (c *Client) path() string {
@@ -53,59 +52,27 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	}
 
 	result, err := json.Marshal(command)
+	reader := bytes.NewReader(result)
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://unix://"+c.path(), reader)
+	if err != nil {
+		return nil, fmt.Errorf("could not create http request: %w", err)
+	}
+
+	response, err := c.httpClient.Do(request)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not send command: %w", err)
 	}
+	defer response.Body.Close()
 
-	sizeMessage := fmt.Sprintf("%d\n", len(result))
-	_, err = c.conn.Write([]byte(sizeMessage))
+	contents, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		return nil, fmt.Errorf("Could not write size: %w", err)
-	}
-	_, err = c.conn.Write(result)
-
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not read response from server: %w", err)
 	}
 
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(time.Second*10))
-	defer cancel()
-
-	contentCh := make(chan []byte)
-	errCh := make(chan error)
-
-	go func() {
-		reader := bufio.NewReader(c.conn)
-		byteSize, err := reader.ReadBytes('\n')
-
-		if errors.Is(err, io.EOF) {
-			contentCh <- []byte{}
-			return
-		} else if err != nil {
-			errCh <- fmt.Errorf("could not read size message: %w", err)
-		}
-
-		size, err := strconv.Atoi(string(byteSize[:len(byteSize)-1]))
-		if err != nil {
-			errCh <- fmt.Errorf("could not read message: %w", err)
-		}
-
-		content := make([]byte, size)
-		io.ReadFull(reader, content)
-
-		contentCh <- content
-	}()
-
-	select {
-	case contents := <-contentCh:
-		return contents, nil
-	case err := <-errCh:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
+	return contents, nil
 }
 
 func (c *Client) Close() {
@@ -128,5 +95,13 @@ func New() *Client {
 
 	return &Client{
 		runType: runType,
+
+		httpClient: http.Client{
+			Transport: &http.Transport{
+				DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
+					return net.Dial("unix", server.UnixSocketPath())
+				},
+			},
+		},
 	}
 }
