@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -66,7 +66,7 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	}
 	defer response.Body.Close()
 
-	contents, err := io.ReadAll(response.Body)
+	contents, err := ioutil.ReadAll(response.Body)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not read response from server: %w", err)
