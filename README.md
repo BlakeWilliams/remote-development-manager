@@ -7,6 +7,20 @@ listening on a unix socket locally that can be forwarded to an SSH session.
 So far the server only works on macOS, but the client commands are not OS
 specific.
 
+## Installation
+
+The easiest way to install rdm is to [download the latest
+release](https://github.com/BlakeWilliams/remote-development-manager/releases)
+for your platform. Alternatively, you can build it yourself with `go build main.go`.
+
+e.g. for a Linux server you can use `wget` to download the binary then put it somewhere in your `$PATH`:
+
+```
+wget https://github.com/BlakeWilliams/remote-development-manager/releases/download/latest/rdm-linux.amd64
+mv rdm-linux.amd64 /usr/local/bin/rdm
+chmod +x /usr/local/bin/rdm
+```
+
 ## Usage
 
 Server commands:
