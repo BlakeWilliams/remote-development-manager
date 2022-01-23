@@ -58,15 +58,6 @@ func main() {
 		}
 	case "copy":
 		c := client.New()
-		err := c.Connect(ctx)
-
-		if err != nil {
-			log.Printf("Client could not connect: %v", err)
-			cancel()
-			return
-		}
-		defer c.Close()
-
 		// TODO handle argument in addition to STDIN
 		// TODO check if stdin has data first, otherwise exit
 		scanner := bufio.NewScanner(os.Stdin)
@@ -77,12 +68,12 @@ func main() {
 		}
 
 		if scanner.Err() != nil {
-			log.Printf("Can not get input to copy: %v", err)
+			log.Printf("Can not get input to copy: %v", scanner.Err())
 			cancel()
 			return
 		}
 
-		_, err = c.SendCommand(ctx, "copy", content.String())
+		_, err := c.SendCommand(ctx, "copy", content.String())
 
 		if err != nil {
 			log.Printf("Can not send command: %v", err)
@@ -91,14 +82,6 @@ func main() {
 		}
 	case "paste":
 		c := client.New()
-		err := c.Connect(ctx)
-
-		if err != nil {
-			log.Printf("Client could not connect: %v", err)
-			cancel()
-			return
-		}
-		defer c.Close()
 
 		result, err := c.SendCommand(ctx, "paste")
 
@@ -117,16 +100,8 @@ func main() {
 		}
 
 		c := client.New()
-		err := c.Connect(ctx)
 
-		if err != nil {
-			log.Printf("Client could not connect: %v", err)
-			cancel()
-			return
-		}
-		defer c.Close()
-
-		_, err = c.SendCommand(ctx, "open", args[1])
+		_, err := c.SendCommand(ctx, "open", args[1])
 
 		if err != nil {
 			log.Printf("Can not send command: %v", err)
@@ -137,16 +112,7 @@ func main() {
 		fmt.Println(server.UnixSocketPath())
 	case "stop":
 		c := client.New()
-		err := c.Connect(ctx)
-
-		if err != nil {
-			log.Printf("Client could not connect: %v", err)
-			cancel()
-			return
-		}
-		defer c.Close()
-
-		_, err = c.SendCommand(ctx, "stop")
+		_, err := c.SendCommand(ctx, "stop")
 
 		if err != nil {
 			log.Printf("Can not send command: %v", err)

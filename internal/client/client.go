@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/blakewilliams/remote-development-manager/internal/server"
 )
@@ -23,26 +24,10 @@ type Client struct {
 
 func (c *Client) path() string {
 	if c.runType == RunLocal {
-		return server.UnixSocketPath()
+		return "http://unix://" + server.UnixSocketPath()
 	} else {
-		return "localhost:7391"
+		return "http://localhost:7391"
 	}
-}
-
-func (c *Client) Connect(ctx context.Context) error {
-	var d net.Dialer
-	conn, err := d.DialContext(ctx, c.runType, c.path())
-	c.conn = conn
-
-	if err != nil {
-		return err
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (c *Client) SendCommand(ctx context.Context, commandName string, arguments ...string) ([]byte, error) {
@@ -54,7 +39,7 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	result, err := json.Marshal(command)
 	reader := bytes.NewReader(result)
 
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://unix://"+c.path(), reader)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.path(), reader)
 	if err != nil {
 		return nil, fmt.Errorf("could not create http request: %w", err)
 	}
@@ -93,15 +78,21 @@ func New() *Client {
 		runType = RunRemote
 	}
 
-	return &Client{
+	client := &Client{
 		runType: runType,
-
-		httpClient: http.Client{
-			Transport: &http.Transport{
-				DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
-					return net.Dial("unix", server.UnixSocketPath())
-				},
-			},
-		},
 	}
+
+	client.httpClient = http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	if runType == RunLocal {
+		client.httpClient.Transport = &http.Transport{
+			DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
+				return net.Dial("unix", server.UnixSocketPath())
+			},
+		}
+	}
+
+	return client
 }
