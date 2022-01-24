@@ -28,6 +28,9 @@ The following is an example of forwarding an rdm server to a remote host: `ssh
 number is not currently configurable and will always attempt to connect to
 `7391`.
 
+For Codespaces, `rdm` can be forwarded as part of the `gh cs ssh` command as
+arguments to `ssh`, e.g.: `gh cs ssh -- -R 127.0.0.1:7391:$(rdm socket)`
+
 Server commands:
 
 * `rdm server` - hosts a server locally (macOS only) so that your machine can receive copy, paste, and open commands.
@@ -41,10 +44,46 @@ Client commands:
 * `rdm paste` - reads and prints the host machine's clipboard. `rdm paste`
 * `rdm open` - forwards the first argument to `open`. e.g. `rdm open https://github.com/blakewilliams/remote-development-manager`
 
+## Integrations
+
+Here's a few tools you can easily hook `rdm` into:
+
+### Tmux
+
+If you're using macOS and are already delegating copy to `pbcopy` you can
+easily use `rdm` in an ssh session by creating an alias.
+
+```shell
+alias pbcopy="rdm copy"
+```
+
+Alternatively, you can define the commands explicitly for `rdm`:
+
+```
+bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "rdm copy"
+bind-key -T copy-mode-vi 'y' send -X copy-pipe-and-cancel "rdm copy"
+```
+
+### Neovim
+
+Neovim supports custom clipboards out-of-the-box. You can use `rdm` with Neovim
+using the following code:
+
+```viml
+let g:clipboard = {"name": "rdm", "copy": {}, "paste": {}}
+let g:clipboard.copy["+"] = ["rdm", "copy"]
+let g:clipboard.paste["+"] = ["rdm", "paste"]
+let g:clipboard.copy["*"] = ["rdm", "copy"]
+let g:clipboard.paste["*"] = ["rdm", "paste"]
+```
+
 ## TO-DO
 
-So far this is just an experiment and there's a lot to be done to get it to a stable point. Contributions are very welcome.
+So far this is just an experiment and there's a lot to be done to get it to a
+stable point. Contributions are very welcome.
 
 * Add test coverage
 * Daemonize the server process
 * Add a configuration file that allows custom commands
+* Add instructions for vim
+* Linux support, if anyone wants to add it
