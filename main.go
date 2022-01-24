@@ -65,6 +65,7 @@ func main() {
 
 		for scanner.Scan() {
 			content.Write(scanner.Bytes())
+			content.WriteByte('\n')
 		}
 
 		if scanner.Err() != nil {
