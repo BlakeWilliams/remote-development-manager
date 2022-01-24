@@ -23,11 +23,17 @@ chmod +x /usr/local/bin/rdm
 
 ## Usage
 
+The following is an example of forwarding an rdm server to a remote host: `ssh
+-R 127.0.0.1:7391:$(rdm socket) user@mysite.net`. It's worth noting the port
+number is not currently configurable and will always attempt to connect to
+`7391`.
+
 Server commands:
 
 * `rdm server` - hosts a server locally (macOS only) so that your machine can receive copy, paste, and open commands.
 * `rdm close` - attempts to close a running server.
-* `rdm logpath` - returns the path where server logs are located. useful for `tail $(rdm logpath)`
+* `rdm logpath` - returns the path where server logs are located. Useful for `tail $(rdm logpath)`
+* `rdm socket` - returns the path where the server socket lives. Useful for SSH commands, as seen above.
 
 Client commands:
 
