@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -ex
+
+GOOS=darwin GOARCH=amd64 go build -o rdm-darwin-amd64
+GOOS=darwin GOARCH=arm64 go build -o rdm-darwin-arm64
+GOOS=linux GOARCH=amd64 go build -o rdm-linux-amd64
+GOOS=linux GOARCH=arm64 go build -o rdm-linux-arm64
