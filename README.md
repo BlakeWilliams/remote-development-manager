@@ -77,6 +77,15 @@ let g:clipboard.copy["*"] = ["rdm", "copy"]
 let g:clipboard.paste["*"] = ["rdm", "paste"]
 ```
 
+## GitHub CLI
+
+GitHub CLI allows you to configure the browser used to open URL's. We can use
+this to set `rdm` as the browser target:
+
+```
+$ gh config set browser "rdm open"
+```
+
 ## TO-DO
 
 So far this is just an experiment and there's a lot to be done to get it to a
