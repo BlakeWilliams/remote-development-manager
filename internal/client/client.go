@@ -17,17 +17,8 @@ import (
 type Client struct {
 	// Determines if command should connect locally via unix socket or if port
 	// should be forwarded via ssh
-	runType    string
-	conn       net.Conn
+	path       string
 	httpClient http.Client
-}
-
-func (c *Client) path() string {
-	if c.runType == RunLocal {
-		return "http://unix://" + server.UnixSocketPath()
-	} else {
-		return "http://localhost:7391"
-	}
 }
 
 func (c *Client) SendCommand(ctx context.Context, commandName string, arguments ...string) ([]byte, error) {
@@ -39,7 +30,7 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	result, err := json.Marshal(command)
 	reader := bytes.NewReader(result)
 
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.path(), reader)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.path, reader)
 	if err != nil {
 		return nil, fmt.Errorf("could not create http request: %w", err)
 	}
@@ -60,12 +51,6 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	return contents, nil
 }
 
-func (c *Client) Close() {
-	if c.conn != nil {
-		c.conn.Close()
-	}
-}
-
 const (
 	RunLocal  = "unix"
 	RunRemote = "tcp"
@@ -79,11 +64,15 @@ func New() *Client {
 	}
 
 	client := &Client{
-		runType: runType,
+		httpClient: http.Client{
+			Timeout: time.Second * 10,
+		},
 	}
 
-	client.httpClient = http.Client{
-		Timeout: time.Second * 10,
+	if runType == RunLocal {
+		client.path = "http://unix://" + server.UnixSocketPath()
+	} else {
+		client.path = "http://localhost:7391"
 	}
 
 	if runType == RunLocal {
