@@ -11,11 +11,14 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
 )
 
 type Server struct {
 	path       string
 	logger     *log.Logger
+	clipboard  clipboard.Clipboard
 	httpServer *http.Server
 }
 
@@ -40,7 +43,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	switch command.Name {
 	case "copy":
-		err := copy(command.Arguments[0])
+		err := s.clipboard.Copy(command.Arguments[0])
 		if err != nil {
 			log.Printf("error running copy command: %v", err)
 		}
@@ -52,7 +55,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "stop":
 		log.Printf("received stop command, shutting down")
 	case "paste":
-		contents, err := paste()
+		contents, err := s.clipboard.Paste()
 		if err != nil {
 			s.logger.Printf("error running paste command: %v", err)
 		} else {
@@ -87,8 +90,8 @@ func (s *Server) Listen(ctx context.Context) error {
 	return ctx.Err()
 }
 
-func New(path string, logger *log.Logger) *Server {
-	server := &Server{path: UnixSocketPath(), logger: logger}
+func New(path string, clipboard clipboard.Clipboard, logger *log.Logger) *Server {
+	server := &Server{path: path, clipboard: clipboard, logger: logger}
 	server.httpServer = &http.Server{
 		Handler:      server,
 		ReadTimeout:  time.Second * 10,
@@ -96,36 +99,6 @@ func New(path string, logger *log.Logger) *Server {
 	}
 
 	return server
-}
-
-/// TODO extract into commands package and support more than macOS
-func copy(input string) error {
-	cmd := exec.Command("pbcopy")
-	stdin, err := cmd.StdinPipe()
-
-	if err != nil {
-		return fmt.Errorf("could not create pbcopy stdin: %w", err)
-	}
-
-	_, err = stdin.Write([]byte(input))
-
-	if err != nil {
-		return fmt.Errorf("could not create write to pbcopy: %w", err)
-	}
-
-	err = stdin.Close()
-
-	if err != nil {
-		return fmt.Errorf("could not create close pbcopy stdin: %w", err)
-	}
-
-	err = cmd.Run()
-
-	if err != nil {
-		return fmt.Errorf("could not run pbcopy command: %w", err)
-	}
-
-	return nil
 }
 
 func open(target string) error {
@@ -138,19 +111,4 @@ func open(target string) error {
 	}
 
 	return nil
-}
-
-func paste() ([]byte, error) {
-	cmd := exec.Command("pbpaste")
-
-	contents, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("could not run pbpaste: %w", err)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("could not read stdout for pbpaste: %w", err)
-	}
-
-	return contents, nil
 }

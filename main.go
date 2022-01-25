@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/blakewilliams/remote-development-manager/internal/client"
+	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
 	"github.com/blakewilliams/remote-development-manager/internal/server"
 )
 
@@ -48,7 +49,7 @@ func main() {
 		defer logFile.Close()
 		log.SetOutput(logFile)
 
-		s := server.New(server.UnixSocketPath(), logger)
+		s := server.New(server.UnixSocketPath(), clipboard.MacosClipboard, logger)
 		err = s.Listen(ctx)
 
 		if err != nil {
