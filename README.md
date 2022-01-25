@@ -77,6 +77,13 @@ let g:clipboard.copy["*"] = ["rdm", "copy"]
 let g:clipboard.paste["*"] = ["rdm", "paste"]
 ```
 
+For `open` support, add the following to `~/.zshenv` if you're using zsh:
+
+```shell
+alias open="rdm open"
+alias xdg-open="rdm open"
+```
+
 ## GitHub CLI
 
 GitHub CLI allows you to configure the browser used to open URL's. We can use
