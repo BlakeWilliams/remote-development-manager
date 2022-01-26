@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
@@ -28,7 +29,7 @@ type Command struct {
 }
 
 func UnixSocketPath() string {
-	return os.TempDir() + "rdm.sock"
+	return strings.TrimRight(os.TempDir(), "/") + "/rdm.sock"
 }
 
 func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
