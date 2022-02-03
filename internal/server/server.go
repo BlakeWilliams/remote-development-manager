@@ -70,17 +70,11 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) Listen(ctx context.Context) error {
-	sock, err := net.Listen("unix", s.path)
-	if err != nil {
-		return fmt.Errorf("could not listen to unix socket: %w", err)
-	}
-	defer os.Remove(s.path)
-
+func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func() {
-		err = s.httpServer.Serve(sock)
+		err := s.httpServer.Serve(listener)
 		if err != nil {
 			cancel()
 		}
@@ -89,6 +83,16 @@ func (s *Server) Listen(ctx context.Context) error {
 	<-ctx.Done()
 
 	return ctx.Err()
+}
+
+func (s *Server) Listen(ctx context.Context) error {
+	sock, err := net.Listen("unix", s.path)
+	if err != nil {
+		return fmt.Errorf("could not listen to unix socket: %w", err)
+	}
+	defer os.Remove(s.path)
+
+	return s.Serve(ctx, sock)
 }
 
 func New(path string, clipboard clipboard.Clipboard, logger *log.Logger) *Server {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -31,8 +32,12 @@ func TestServer_Copy(t *testing.T) {
 	testClipboard := clipboard.NewTestClipboard()
 	server := New(path, testClipboard, nullLogger)
 
+	listener, err := net.Listen("unix", server.path)
+	defer os.Remove(server.path)
+	require.NoError(t, err)
+
 	go func() {
-		err := server.Listen(context.Background())
+		err := server.Serve(context.Background(), listener)
 		require.NoError(t, err)
 	}()
 
