@@ -27,5 +27,10 @@ func main() {
 		}
 	}()
 
-	_ = cmd.Execute(ctx)
+	err := cmd.Execute(ctx)
+
+	if err != nil {
+		logger.Printf("error executing command: %v", err)
+		os.Exit(1)
+	}
 }
