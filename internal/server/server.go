@@ -21,6 +21,7 @@ type Server struct {
 	logger     *log.Logger
 	clipboard  clipboard.Clipboard
 	httpServer *http.Server
+	cancel     context.CancelFunc
 }
 
 type Command struct {
@@ -55,6 +56,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 	case "stop":
 		log.Printf("received stop command, shutting down")
+		s.cancel()
 	case "paste":
 		contents, err := s.clipboard.Paste()
 		if err != nil {
@@ -72,6 +74,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	ctx, cancel := context.WithCancel(ctx)
+	s.cancel = cancel
 
 	go func() {
 		err := s.httpServer.Serve(listener)
