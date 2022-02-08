@@ -16,8 +16,8 @@ for your platform. Alternatively, you can build it yourself with `go build main.
 e.g. for a Linux server you can use `wget` to download the binary then put it somewhere in your `$PATH`:
 
 ```
-wget https://github.com/BlakeWilliams/remote-development-manager/releases/download/latest/rdm-linux.amd64
-mv rdm-linux.amd64 /usr/local/bin/rdm
+wget https://github.com/BlakeWilliams/remote-development-manager/releases/download/latest/rdm-linux-amd64
+mv rdm-linux-amd64 /usr/local/bin/rdm
 chmod +x /usr/local/bin/rdm
 ```
 
