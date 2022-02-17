@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"context"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -20,23 +21,15 @@ func newCopyCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			defer cancel()
 
 			c := client.New()
-			// TODO handle argument in addition to STDIN
-			// TODO check if stdin has data first, otherwise exit
-			scanner := bufio.NewScanner(os.Stdin)
-			var content strings.Builder
 
-			for scanner.Scan() {
-				content.Write(scanner.Bytes())
-				content.WriteByte('\n')
-			}
+			content, err := readBuffer(bufio.NewReader(os.Stdin))
 
-			if scanner.Err() != nil {
-				log.Printf("Can not get input to copy: %v", scanner.Err())
-				cancel()
+			if err != nil {
+				log.Printf("Can not get input to copy: %v", err)
 				return
 			}
 
-			_, err := c.SendCommand(ctx, "copy", content.String())
+			_, err = c.SendCommand(ctx, "copy", content)
 
 			if err != nil {
 				log.Printf("Can not send command: %v", err)
@@ -44,5 +37,23 @@ func newCopyCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 				return
 			}
 		},
+	}
+}
+
+func readBuffer(r *bufio.Reader) (string, error) {
+	var content strings.Builder
+
+	for {
+		line, err := r.ReadBytes('\n')
+
+		switch err {
+		case io.EOF:
+			content.Write(line)
+			return content.String(), nil
+		case nil:
+			content.Write(line)
+		default:
+			return "", err
+		}
 	}
 }
