@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -50,4 +51,31 @@ func TestClient_SendCommand(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, "test result", string(responseContent))
+}
+
+func TestClient_DoesNotHang(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Millisecond * 200)
+		rw.Write([]byte("test result"))
+	}))
+	defer server.Close()
+
+	client := &Client{
+		path:       server.URL,
+		httpClient: *http.DefaultClient,
+	}
+
+	start := time.Now()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(time.Millisecond * 10)
+		cancel()
+	}()
+
+	_, err := client.SendCommand(ctx, "copy", "test 1 2 3")
+	require.Error(t, err)
+
+	require.Less(t, time.Now().Sub(start), time.Millisecond*20)
 }
