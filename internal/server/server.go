@@ -89,7 +89,8 @@ func (s *Server) Listen(ctx context.Context) error {
 		var errNo syscall.Errno
 
 		if errors.As(err, &errNo) && errNo == syscall.EADDRINUSE {
-			c := client.New()
+			c := client.NewWithSocketPath(s.path)
+
 			_, err := c.SendCommand(ctx, "status")
 
 			if err != nil {

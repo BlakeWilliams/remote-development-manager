@@ -38,9 +38,11 @@ func TestServer_Copy(t *testing.T) {
 	defer os.Remove(server.path)
 	require.NoError(t, err)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	go func() {
-		err := server.Serve(context.Background(), listener)
-		require.NoError(t, err)
+		err := server.Serve(ctx, listener)
+		require.ErrorIs(t, err, context.Canceled)
 	}()
 
 	copyCommand := client.Command{
@@ -83,9 +85,11 @@ func TestServer_Ping(t *testing.T) {
 	defer os.Remove(server.path)
 	require.NoError(t, err)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	go func() {
-		err := server.Serve(context.Background(), listener)
-		require.NoError(t, err)
+		err := server.Serve(ctx, listener)
+		require.ErrorIs(t, err, context.Canceled)
 	}()
 
 	statusCommand := client.Command{
@@ -103,4 +107,28 @@ func TestServer_Ping(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, `{ "status": "running" }`, string(body))
+}
+
+func TestServer_ExistingSocket(t *testing.T) {
+	nullLogger := log.New(io.Discard, "", log.LstdFlags)
+
+	testClipboard := clipboard.NewTestClipboard()
+	server := New(path, testClipboard, nullLogger)
+
+	if _, err := os.Stat(path); err == nil {
+		os.Remove(path)
+	}
+
+	file, err := os.Create(path)
+	require.NoError(t, err)
+	file.Close()
+	defer os.Remove(server.path)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		err := server.Listen(ctx)
+		require.ErrorIs(t, err, context.Canceled)
+	}()
 }
