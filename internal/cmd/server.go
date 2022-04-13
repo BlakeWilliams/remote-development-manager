@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/blakewilliams/remote-development-manager/internal/client"
 	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
 	"github.com/blakewilliams/remote-development-manager/internal/server"
 	"github.com/spf13/cobra"
@@ -25,10 +27,11 @@ func newServerCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			defer logFile.Close()
 			log.SetOutput(logFile)
 
-			s := server.New(server.UnixSocketPath(), clipboard.MacosClipboard, logger)
+			s := server.New(client.UnixSocketPath(), clipboard.MacosClipboard, logger)
 			err = s.Listen(ctx)
 
 			if err != nil {
+				fmt.Println(err)
 				log.Printf("Server could not be started: %v", err)
 				cancel()
 				return

@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/blakewilliams/remote-development-manager/internal/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +29,7 @@ func TestClient_SendCommand(t *testing.T) {
 		content, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 
-		var command server.Command
+		var command Command
 		err = json.Unmarshal(content, &command)
 
 		require.NoError(t, err)

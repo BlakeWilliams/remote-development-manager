@@ -9,9 +9,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
-
-	"github.com/blakewilliams/remote-development-manager/internal/server"
 )
 
 type Client struct {
@@ -21,8 +20,17 @@ type Client struct {
 	httpClient http.Client
 }
 
+type Command struct {
+	Name      string
+	Arguments []string
+}
+
+func UnixSocketPath() string {
+	return strings.TrimRight(os.TempDir(), "/") + "/rdm.sock"
+}
+
 func (c *Client) SendCommand(ctx context.Context, commandName string, arguments ...string) ([]byte, error) {
-	command := server.Command{
+	command := Command{
 		Name:      commandName,
 		Arguments: arguments,
 	}
@@ -70,7 +78,7 @@ func New() *Client {
 	}
 
 	if runType == RunLocal {
-		client.path = "http://unix://" + server.UnixSocketPath()
+		client.path = "http://unix://" + UnixSocketPath()
 	} else {
 		client.path = "http://localhost:7391"
 	}
@@ -78,7 +86,7 @@ func New() *Client {
 	if runType == RunLocal {
 		client.httpClient.Transport = &http.Transport{
 			DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
-				return net.Dial("unix", server.UnixSocketPath())
+				return net.Dial("unix", UnixSocketPath())
 			},
 		}
 	}

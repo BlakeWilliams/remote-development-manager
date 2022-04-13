@@ -12,12 +12,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/blakewilliams/remote-development-manager/internal/client"
 	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
 	"github.com/stretchr/testify/require"
 )
 
-var path string = UnixSocketPath() + ".test"
-var client http.Client = http.Client{
+var path string = client.UnixSocketPath() + ".test"
+
+var httpClient http.Client = http.Client{
 	Timeout: time.Second * 10,
 	Transport: &http.Transport{
 		DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
@@ -41,7 +43,7 @@ func TestServer_Copy(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	copyCommand := Command{
+	copyCommand := client.Command{
 		Name:      "copy",
 		Arguments: []string{"test 1 2 3"},
 	}
@@ -49,12 +51,12 @@ func TestServer_Copy(t *testing.T) {
 	data, err := json.Marshal(copyCommand)
 	require.NoError(t, err)
 
-	_, err = client.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
+	_, err = httpClient.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
 	require.NoError(t, err)
 
 	require.Equal(t, "test 1 2 3", testClipboard.Buffer)
 
-	pasteCommand := Command{
+	pasteCommand := client.Command{
 		Name:      "paste",
 		Arguments: []string{},
 	}
@@ -62,11 +64,43 @@ func TestServer_Copy(t *testing.T) {
 	data, err = json.Marshal(pasteCommand)
 	require.NoError(t, err)
 
-	result, err := client.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
+	result, err := httpClient.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
 	require.NoError(t, err)
 
 	body, err := io.ReadAll(result.Body)
 	require.NoError(t, err)
 
 	require.Equal(t, "test 1 2 3", string(body))
+}
+
+func TestServer_Ping(t *testing.T) {
+	nullLogger := log.New(io.Discard, "", log.LstdFlags)
+
+	testClipboard := clipboard.NewTestClipboard()
+	server := New(path, testClipboard, nullLogger)
+
+	listener, err := net.Listen("unix", server.path)
+	defer os.Remove(server.path)
+	require.NoError(t, err)
+
+	go func() {
+		err := server.Serve(context.Background(), listener)
+		require.NoError(t, err)
+	}()
+
+	statusCommand := client.Command{
+		Name:      "status",
+		Arguments: []string{},
+	}
+
+	data, err := json.Marshal(statusCommand)
+	require.NoError(t, err)
+
+	result, err := httpClient.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
+	require.NoError(t, err)
+
+	body, err := io.ReadAll(result.Body)
+	require.NoError(t, err)
+
+	require.Equal(t, `{ "status": "running" }`, string(body))
 }
