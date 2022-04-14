@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,9 +11,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
+	"syscall"
 	"time"
 
+	"github.com/blakewilliams/remote-development-manager/internal/client"
 	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
 )
 
@@ -24,15 +26,6 @@ type Server struct {
 	cancel     context.CancelFunc
 }
 
-type Command struct {
-	Name      string
-	Arguments []string
-}
-
-func UnixSocketPath() string {
-	return strings.TrimRight(os.TempDir(), "/") + "/rdm.sock"
-}
-
 func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -40,10 +33,12 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	r.Body.Close()
 
-	var command Command
+	var command client.Command
 	json.Unmarshal(body, &command)
 
 	switch command.Name {
+	case "status":
+		rw.Write([]byte(`{ "status": "running" }`))
 	case "copy":
 		err := s.clipboard.Copy(command.Arguments[0])
 		if err != nil {
@@ -91,7 +86,20 @@ func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 func (s *Server) Listen(ctx context.Context) error {
 	sock, err := net.Listen("unix", s.path)
 	if err != nil {
-		return fmt.Errorf("could not listen to unix socket: %w", err)
+		var errNo syscall.Errno
+
+		if errors.As(err, &errNo) && errNo == syscall.EADDRINUSE {
+			c := client.NewWithSocketPath(s.path)
+
+			_, err := c.SendCommand(ctx, "status")
+
+			if err != nil {
+				os.Remove(s.path)
+				sock, err = net.Listen("unix", s.path)
+			} else {
+				return fmt.Errorf("could not listen to unix socket: %w", errNo)
+			}
+		}
 	}
 	defer os.Remove(s.path)
 
