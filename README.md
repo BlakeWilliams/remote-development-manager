@@ -98,7 +98,6 @@ $ gh config set browser "rdm open"
 So far this is just an experiment and there's a lot to be done to get it to a
 stable point. Contributions are very welcome.
 
-* Add test coverage
 * Daemonize the server process
 * Add a configuration file that allows custom commands
 * Add instructions for vim
