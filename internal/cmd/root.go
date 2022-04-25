@@ -9,8 +9,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "rdm",
+	Use:   "remote-development-manager",
 	Short: "A server and client for better remote development integration.",
+	Long: `Embetter your remove development experience!
+	Complete documentation is available at https://github.com/BlakeWilliams/remote-development-manager`,
 }
 
 var LogPath string = os.TempDir() + "rdm.log"
