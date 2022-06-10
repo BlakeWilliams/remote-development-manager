@@ -10,8 +10,6 @@ import (
 	"github.com/blakewilliams/remote-development-manager/internal/cmd"
 )
 
-var LogPath string = os.TempDir() + "rdm.log"
-
 func main() {
 	logger := log.Default()
 	ctx, cancel := context.WithCancel(context.Background())

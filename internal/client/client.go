@@ -53,7 +53,7 @@ func (c *Client) SendCommand(ctx context.Context, commandName string, arguments 
 	contents, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		return nil, fmt.Errorf("could not read response from server: %w", err)
+		return nil, err
 	}
 
 	return contents, nil

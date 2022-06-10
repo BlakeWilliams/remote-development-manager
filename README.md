@@ -43,6 +43,31 @@ Client commands:
 * `rdm copy` - reads stdin and forwards the input to the host machine, adding it to the clipboard. e.g. `echo "hello world" | rdm copy`
 * `rdm paste` - reads and prints the host machine's clipboard. `rdm paste`
 * `rdm open` - forwards the first argument to `open`. e.g. `rdm open https://github.com/blakewilliams/remote-development-manager`
+* `rdm run` - runs a custom command defined in `~/.config/rdm/rdm.json`. e.g. `rdm run forward 80:80`
+* `rdm ps` - lists processes started by `run`.
+* `rdm kill` - kills a process started by `run`.
+
+## Configuration
+
+`rdm` supports custom commands via a configuration file located in `~/.config/rdm/rdm.json`.
+
+Here's a small example defining two custom commands:
+
+```json
+{
+  "commands": {
+    "host_time": {
+      "executablePath": "./hosttime.sh"
+    },
+    "forward": {
+      "executablePath": "./forward_ports.sh"
+    }
+  }
+}
+```
+
+The `executablePath` can either be an absolute path to an executable or a
+relative path that's relative to the config file.
 
 ## Integrations
 
