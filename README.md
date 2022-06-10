@@ -77,6 +77,22 @@ let g:clipboard.copy["*"] = ["rdm", "copy"]
 let g:clipboard.paste["*"] = ["rdm", "paste"]
 ```
 
+Or if you use lua:
+
+```lua
+vim.g.clipboard = {
+  name = "rdm",
+  copy = {
+    ["+"] = {"rdm", "copy"},
+    ["*"] = {"rdm", "copy"} 
+  },
+  paste = {
+    ["+"] = {"rdm", "paste"},
+    ["*"] = {"rdm", "paste"} 
+  },
+}
+```
+
 For `open` support, add the following to `~/.zshenv` if you're using zsh:
 
 ```shell
