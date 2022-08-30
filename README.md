@@ -34,7 +34,7 @@ arguments to `ssh`, e.g.: `gh cs ssh -- -R 127.0.0.1:7391:$(rdm socket)`
 Server commands:
 
 * `rdm server` - hosts a server locally (macOS only) so that your machine can receive copy, paste, and open commands.
-* `rdm close` - attempts to close a running server.
+* `rdm stop` - attempts to close a running server.
 * `rdm logpath` - returns the path where server logs are located. Useful for `tail $(rdm logpath)`
 * `rdm socket` - returns the path where the server socket lives. Useful for SSH commands, as seen above.
 
