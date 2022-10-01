@@ -27,6 +27,7 @@ func Execute(ctx context.Context) error {
 	rootCmd.AddCommand(newOpenCmd(ctx, logger))
 	rootCmd.AddCommand(newSocketCmd(ctx))
 	rootCmd.AddCommand(newStopCmd(ctx, logger))
+	rootCmd.AddCommand(newInstallCmd(ctx, logger))
 	rootCmd.AddCommand(newLogpathCmd(ctx))
 
 	return rootCmd.Execute()
