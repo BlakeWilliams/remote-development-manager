@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // runState is the current runtime state of a launchctl service.
@@ -11,6 +12,7 @@ type runState int
 //go:generate stringer -type=runState
 const (
 	unknownRS runState = iota
+	NoSuchService
 	Running
 	Starting
 	NotRunning
@@ -20,7 +22,11 @@ const (
 func (s *Service) RunState() (rs runState, err error) {
 	out, err := s.launchctlPrint()
 	if err != nil {
-		return
+		if strings.Contains(err.Error(), "Could not find service") {
+			return NoSuchService, nil
+		} else {
+			return unknownRS, err
+		}
 	}
 	matches := parser.FindSubmatch(out)
 	if len(matches) == 0 {

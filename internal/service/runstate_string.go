@@ -9,14 +9,15 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[unknownRS-0]
-	_ = x[Running-1]
-	_ = x[Starting-2]
-	_ = x[NotRunning-3]
+	_ = x[NoSuchService-1]
+	_ = x[Running-2]
+	_ = x[Starting-3]
+	_ = x[NotRunning-4]
 }
 
-const _runState_name = "unknownRSRunningStartingNotRunning"
+const _runState_name = "unknownRSNoSuchServiceRunningStartingNotRunning"
 
-var _runState_index = [...]uint8{0, 9, 16, 24, 34}
+var _runState_index = [...]uint8{0, 9, 22, 29, 37, 47}
 
 func (i runState) String() string {
 	if i < 0 || i >= runState(len(_runState_index)-1) {
