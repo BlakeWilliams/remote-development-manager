@@ -15,7 +15,7 @@ func newServiceCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 	long := fmt.Sprintf("%s\n\nCurrent status of %s:\n\n\t%s\n\t%s",
 		short,
 		svc.UserSpecifier(),
-		service.VerboseInstallState(svc),
+		svc.InstallStatePretty(),
 		service.VerboseRunState(svc),
 	)
 	cmd := &cobra.Command{

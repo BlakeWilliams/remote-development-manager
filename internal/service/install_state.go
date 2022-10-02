@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/fatih/color"
 )
 
 type installState int
@@ -17,6 +19,26 @@ const (
 	PlistPresentButNotLoaded
 	Installed
 )
+
+var green = color.New(color.FgGreen).SprintFunc()
+var yellow = color.New(color.FgYellow).SprintFunc()
+
+func (s *Service) InstallStatePretty() string {
+	stateStr := ""
+	errDetail := ""
+	state, err := s.InstallState()
+	if err != nil {
+		errDetail = fmt.Sprintf(" (%v)", err.Error())
+	}
+
+	if state == Installed {
+		stateStr = green(state.String())
+	} else {
+		stateStr = yellow(state.String())
+	}
+
+	return fmt.Sprintf("Install state: [%s]%s", stateStr, errDetail)
+}
 
 // InstallState indicates whether our service is installed.
 func (s *Service) InstallState() (state installState, err error) {
