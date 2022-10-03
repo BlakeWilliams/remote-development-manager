@@ -7,9 +7,13 @@ import (
 	"strings"
 )
 
-// Set up a service.
-func (s *Service) launchctlBootstrap(plistPath string) ([]byte, error) {
-	return s.launchctl("bootstrap", domain, plistPath)
+// Bootstrap a new service (`launchctl bootstrap` née `launchctl load`)
+func (s *Service) Bootstrap() ([]byte, error) {
+	path, err := s.DefinitionPath()
+	if err != nil {
+		return nil, err
+	}
+	return s.launchctl("bootstrap", domain, path)
 }
 
 // Print service state (`launchctl print`)
