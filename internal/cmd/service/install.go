@@ -15,21 +15,28 @@ import (
 )
 
 const rdmServiceName = "com.blakewilliams.rdm"
+const detailMessage = "Run `launchctl print %s` for more detail."
+const noNeedMessage = "launchd service is already installed and running, nothing to do!" + "\n" + detailMessage + "\n"
 
-// NewInstallCmd returns a new "service install" subcommand
+// NewInstallCmd returns a new "service install" subcommand that installs a launchctl service.
 func NewInstallCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "install",
 		Short: "Configures rdm to run on boot as a MacOS LaunchAgent.",
 		Run: func(cmd *cobra.Command, args []string) {
 			svc := NewRdmService()
+			if svc.IsHealthy() {
+				fmt.Printf(noNeedMessage, svc.UserSpecifier())
+				return
+			}
 			if err := ensureInstalled(svc); err != nil {
-				die("ensureInstalled", err)
+				fmt.Printf("Problem installing: %v\n", err)
+				return
 			}
 			status := svc.RunState()
 			fmt.Printf(
-				"Run state for %s: %s\nRun `launchctl print %s` for more detail\n.",
-				svc.Name, status.Pretty(), svc.UserSpecifier(),
+				"%s\nRun `launchctl print %s` for more detail\n.",
+				status.Pretty(), svc.UserSpecifier(),
 			)
 		},
 	}
@@ -40,30 +47,19 @@ func NewRdmService() *service.Service {
 	return service.New(rdmServiceName)
 }
 
-func die(msg string, err error) {
-	log.Fatalf("error in %s, %v", msg, err)
-}
-
-func ensureInstalled(svc *service.Service) error {
-	installState := svc.InstallState()
-	fmt.Println(installState.Pretty())
-
-	if !installState.Is(state.Installed) {
+func ensureInstalled(svc *service.Service) (err error) {
+	if !svc.InstallState().Is(state.Installed) {
 		configFile, err := plistContent()
 		if err != nil {
 			return err
 		}
 
 		fmt.Print("Attempting to set up launchd service... ")
-		err = svc.Install(configFile)
-		if err != nil {
-			fmt.Printf("failed: %v\n", err)
-		} else {
+		if err = svc.Install(configFile); err == nil {
 			fmt.Println("done!")
 		}
-		return err
 	}
-	return nil
+	return err
 }
 
 //go:embed launchagent.tmpl
