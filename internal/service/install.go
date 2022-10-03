@@ -8,7 +8,7 @@ import (
 
 // Install sets up a new service by writing a plist file and telling launchd about it.
 func (s *Service) Install(plistFileContent []byte) (err error) {
-	path, err := s.plistPath()
+	path, err := s.DefinitionPath()
 	if err != nil {
 		return
 	}

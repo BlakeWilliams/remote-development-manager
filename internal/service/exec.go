@@ -12,8 +12,8 @@ func (s *Service) launchctlBootstrap(plistPath string) ([]byte, error) {
 	return s.launchctl("bootstrap", domain, plistPath)
 }
 
-// Print service state.
-func (s *Service) launchctlPrint() ([]byte, error) {
+// Print service state (`launchctl print`)
+func (s *Service) Print() ([]byte, error) {
 	return s.launchctl("print", s.UserSpecifier())
 }
 

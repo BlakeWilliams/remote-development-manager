@@ -12,11 +12,11 @@ import (
 func newServiceCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 	short := "Manage this program as a launchd system service."
 	svc := service.NewRdmService()
-	long := fmt.Sprintf("%s\n\nCurrent status of %s:\n\n\t%s\n\t%s",
+	long := fmt.Sprintf("%s\n  Current status of launchd service `%s`:\n    %s\n    %s",
 		short,
 		svc.UserSpecifier(),
-		svc.InstallStatePretty(),
-		service.VerboseRunState(svc),
+		svc.InstallState().Pretty(),
+		svc.RunState().Pretty(),
 	)
 	cmd := &cobra.Command{
 		Use:   "service [subcommand]",

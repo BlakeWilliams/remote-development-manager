@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/blakewilliams/remote-development-manager/internal/service"
-	"github.com/fatih/color"
+	"github.com/blakewilliams/remote-development-manager/internal/service/state"
 	"github.com/spf13/cobra"
 )
 
@@ -26,13 +26,10 @@ func NewInstallCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if err := ensureInstalled(svc); err != nil {
 				die("ensureInstalled", err)
 			}
-			status, err := svc.RunState()
-			if err != nil {
-				die("RunState", err)
-			}
+			status := svc.RunState()
 			fmt.Printf(
 				"Run state for %s: %s\nRun `launchctl print %s` for more detail\n.",
-				svc.Name, status.String(), svc.UserSpecifier(),
+				svc.Name, status.Pretty(), svc.UserSpecifier(),
 			)
 		},
 	}
@@ -47,45 +44,11 @@ func die(msg string, err error) {
 	log.Fatalf("error in %s, %v", msg, err)
 }
 
-func VerboseInstallState(svc *service.Service) string {
-	errDetail := ""
-	installState, err := svc.InstallState()
-	if err != nil {
-		errDetail = fmt.Sprintf(" (%v)", err.Error())
-	}
-
-	state := installState.String()
-	if state == "Installed" {
-		state = green(state)
-	}
-
-	return fmt.Sprintf("Install state: [%s]%s", state, errDetail)
-}
-
-var green = color.New(color.FgGreen).SprintFunc()
-
-func VerboseRunState(svc *service.Service) string {
-	errDetail := ""
-	runState, err := svc.RunState()
-	if err != nil {
-		errDetail = fmt.Sprintf(" (%v)", err.Error())
-	}
-
-	state := runState.String()
-	if state == "Running" {
-		state = green(state)
-	}
-
-	return fmt.Sprintf("Run state:     [%s]%s", state, errDetail)
-}
-
 func ensureInstalled(svc *service.Service) error {
-	installState, err := svc.InstallState()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Install state for %+v: %s\n", svc.Name, installState.String())
-	if installState != service.Installed {
+	installState := svc.InstallState()
+	fmt.Println(installState.Pretty())
+
+	if !installState.Is(state.Installed) {
 		configFile, err := plistContent()
 		if err != nil {
 			return err

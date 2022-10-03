@@ -1,7 +1,9 @@
 package service
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -27,11 +29,30 @@ func (s *Service) UserSpecifier() string {
 }
 
 // The absolute fs path where the service's plist config lives
-func (s *Service) plistPath() (string, error) {
+func (s *Service) DefinitionPath() (string, error) {
 	dir, err := launchAgentsDir()
 	if err != nil {
 		return "", err
 	}
 	plistFileName := s.Name + ".plist"
 	return filepath.Join(dir, plistFileName), nil
+}
+
+func launchAgentsDir() (dir string, err error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+
+	dir = filepath.Join(home, "Library", "LaunchAgents")
+
+	stat, err := os.Stat(dir)
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("Unexpected missing directory %s (%v)", dir, err)
+	}
+
+	if !stat.IsDir() {
+		return "", fmt.Errorf("Uh, %s exists but is not a directory somehow?", dir)
+	}
+	return
 }
