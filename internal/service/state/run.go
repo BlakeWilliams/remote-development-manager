@@ -10,7 +10,7 @@ import (
 
 // Run describes the current runtime state of a launchd service.
 type Run struct {
-	enum  runState
+	enum  RunState
 	err   error
 	color color.Attribute
 }
@@ -43,7 +43,7 @@ func NewRun(s Runnable) *Run {
 }
 
 // Is compares using the underlying enum value
-func (s *Run) Is(enum runState) bool {
+func (s *Run) Is(enum RunState) bool {
 	return enum == s.enum
 }
 
@@ -84,7 +84,7 @@ func (s *Run) Err() string {
 var parser = regexp.MustCompile(`(?m)^\s+state = (.*)$`)
 
 type coloredState struct {
-	state runState
+	state RunState
 	color color.Attribute
 }
 
@@ -95,12 +95,12 @@ var outputToStatus = map[string]*coloredState{
 	"not running":     {NotRunning, yellow},
 }
 
-// runState enumerates the runtime states that a launchd service may be in.
-type runState int
+// RunState enumerates the runtime states that a launchd service may be in.
+type RunState int
 
-//go:generate stringer -type=runState
+//go:generate stringer -type=RunState
 const (
-	unknownRS runState = iota
+	unknownRS RunState = iota
 	NoSuchService
 	Running
 	Starting

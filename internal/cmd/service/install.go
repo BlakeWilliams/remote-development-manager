@@ -29,15 +29,11 @@ func NewInstallCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 				fmt.Printf(noNeedMessage, svc.UserSpecifier())
 				return
 			}
-			if err := ensureInstalled(svc); err != nil {
+			if err := install(svc); err != nil {
 				fmt.Printf("Problem installing: %v\n", err)
 				return
 			}
-			status := svc.RunState()
-			fmt.Printf(
-				"%s\nRun `launchctl print %s` for more detail\n.",
-				status.Pretty(), svc.UserSpecifier(),
-			)
+			waitUntilRunning(svc)
 		},
 	}
 	return cmd
@@ -47,19 +43,32 @@ func NewRdmService() *service.Service {
 	return service.New(rdmServiceName)
 }
 
-func ensureInstalled(svc *service.Service) (err error) {
+func install(svc *service.Service) (err error) {
 	if !svc.InstallState().Is(state.Installed) {
 		configFile, err := plistContent()
 		if err != nil {
 			return err
 		}
 
-		fmt.Print("Attempting to set up launchd service... ")
+		fmt.Print("Attempting to install launchd service... ")
 		if err = svc.Install(configFile); err == nil {
 			fmt.Println("done!")
 		}
 	}
 	return err
+}
+
+func waitUntilRunning(svc *service.Service) {
+	_, timedOut := svc.PollUntil(state.Running)
+	fmt.Printf(finalStatus(timedOut), svc.UserSpecifier())
+}
+
+func finalStatus(timedOut bool) string {
+	if timedOut {
+		return "timed out waiting for service to come up. Something is probably wrong.\n" + detailMessage + "\n"
+	} else {
+		return "done! " + detailMessage + "\n"
+	}
 }
 
 //go:embed launchagent.tmpl
