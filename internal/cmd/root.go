@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at https://github.com/BlakeWilliams/remote-development-manager`,
 }
 
-var LogPath string = os.TempDir() + "rdm.log"
+var LogPath string = filepath.Join(os.TempDir(), "rdm.log")
 
 func Execute(ctx context.Context) error {
 	logger := log.Default()
