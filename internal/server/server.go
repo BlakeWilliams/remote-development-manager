@@ -118,7 +118,7 @@ func New(path string, clipboard clipboard.Clipboard, logger *log.Logger) *Server
 }
 
 func open(target string) error {
-	cmd := exec.Command("open", target)
+	cmd := exec.Command(openCommand, target)
 
 	err := cmd.Run()
 
