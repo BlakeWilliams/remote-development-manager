@@ -27,7 +27,7 @@ func newServerCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			defer logFile.Close()
 			log.SetOutput(logFile)
 
-			s := server.New(client.UnixSocketPath(), clipboard.MacosClipboard, logger)
+			s := server.New(client.UnixSocketPath(), clipboard.New(), logger)
 			err = s.Listen(ctx)
 
 			if err != nil {
