@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
+	"github.com/blakewilliams/remote-development-manager/internal/hostservice"
 	"github.com/blakewilliams/remote-development-manager/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +27,7 @@ func newServerCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			defer logFile.Close()
 			log.SetOutput(logFile)
 
-			s := server.New(client.UnixSocketPath(), clipboard.MacosClipboard, logger)
+			s := server.New(client.UnixSocketPath(), hostservice.New(), logger)
 			err = s.Listen(ctx)
 
 			if err != nil {

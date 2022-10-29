@@ -10,18 +10,17 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"syscall"
 	"time"
 
 	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
+	"github.com/blakewilliams/remote-development-manager/internal/hostservice"
 )
 
 type Server struct {
+	host       hostservice.Runner
 	path       string
 	logger     *log.Logger
-	clipboard  clipboard.Clipboard
 	httpServer *http.Server
 	cancel     context.CancelFunc
 }
@@ -40,12 +39,12 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "status":
 		rw.Write([]byte(`{ "status": "running" }`))
 	case "copy":
-		err := s.clipboard.Copy(command.Arguments[0])
+		err := s.host.Copy(command.Arguments[0])
 		if err != nil {
 			log.Printf("error running copy command: %v", err)
 		}
 	case "open":
-		err := open(command.Arguments[0])
+		err := s.host.Open(command.Arguments[0])
 		if err != nil {
 			log.Printf("error running open command: %v", err)
 		}
@@ -53,7 +52,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		log.Printf("received stop command, shutting down")
 		s.cancel()
 	case "paste":
-		contents, err := s.clipboard.Paste()
+		contents, err := s.host.Paste()
 		if err != nil {
 			s.logger.Printf("error running paste command: %v", err)
 		} else {
@@ -106,8 +105,12 @@ func (s *Server) Listen(ctx context.Context) error {
 	return s.Serve(ctx, sock)
 }
 
-func New(path string, clipboard clipboard.Clipboard, logger *log.Logger) *Server {
-	server := &Server{path: path, clipboard: clipboard, logger: logger}
+func New(path string, service hostservice.Runner, logger *log.Logger) *Server {
+	server := &Server{
+		host:   service,
+		path:   path,
+		logger: logger,
+	}
 	server.httpServer = &http.Server{
 		Handler:      server,
 		ReadTimeout:  time.Second * 10,
@@ -115,16 +118,4 @@ func New(path string, clipboard clipboard.Clipboard, logger *log.Logger) *Server
 	}
 
 	return server
-}
-
-func open(target string) error {
-	cmd := exec.Command("open", target)
-
-	err := cmd.Run()
-
-	if err != nil {
-		return fmt.Errorf("could not run open command: %w", err)
-	}
-
-	return nil
 }

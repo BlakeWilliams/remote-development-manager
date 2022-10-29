@@ -4,7 +4,7 @@ An experimental Go application that allows an SSH session to interact with the
 clipboard of the host machine and forward calls to `open`. RDM works by
 listening on a unix socket locally that can be forwarded to an SSH session.
 
-So far the server only works on macOS, but the client commands are not OS
+The server works on MacOS and Linux, but the client commands are not OS
 specific.
 
 ## Installation
@@ -84,11 +84,11 @@ vim.g.clipboard = {
   name = "rdm",
   copy = {
     ["+"] = {"rdm", "copy"},
-    ["*"] = {"rdm", "copy"} 
+    ["*"] = {"rdm", "copy"}
   },
   paste = {
     ["+"] = {"rdm", "paste"},
-    ["*"] = {"rdm", "paste"} 
+    ["*"] = {"rdm", "paste"}
   },
 }
 ```
@@ -117,4 +117,3 @@ stable point. Contributions are very welcome.
 * Daemonize the server process
 * Add a configuration file that allows custom commands
 * Add instructions for vim
-* Linux support, if anyone wants to add it
