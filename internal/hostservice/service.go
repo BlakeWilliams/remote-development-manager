@@ -6,7 +6,7 @@ import (
 )
 
 // Service is the set of functionalities made available by the server to the client.
-type Service interface {
+type Runner interface {
 	clipboard.Clipboard
 	open.Opener
 }
@@ -14,8 +14,7 @@ type Service interface {
 // HostService is a default implementation of Service which offers copy paste
 // and open functionality.
 type HostService struct {
-	clipboard.Clipboard
-	open.Opener
+	clipboard: clipboard.Clipboard
 }
 
 var _ Service = (*HostService)(nil)

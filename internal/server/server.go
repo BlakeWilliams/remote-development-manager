@@ -18,7 +18,7 @@ import (
 )
 
 type Server struct {
-	hostservice.Service
+	host: hostservice.Service
 	path       string
 	logger     *log.Logger
 	httpServer *http.Server
