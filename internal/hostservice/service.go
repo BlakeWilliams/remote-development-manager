@@ -18,6 +18,7 @@ type HostService struct {
 	open.Opener
 }
 
+var _ Service = (*HostService)(nil)
 // New returns a HostService.
 func New() *HostService {
 	return &HostService{
