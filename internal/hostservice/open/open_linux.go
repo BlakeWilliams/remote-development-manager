@@ -1,6 +1,6 @@
 //go:build linux
 // +build linux
 
-package server
+package open
 
 const openCommand = "xdg-open"

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/clipboard"
+	"github.com/blakewilliams/remote-development-manager/internal/hostservice/clipboard"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,11 +28,28 @@ var httpClient http.Client = http.Client{
 	},
 }
 
+var lastOpened string
+
+type testHostService struct {
+	clipboard.TestClipboard
+}
+
+func newTestHostService() *testHostService {
+	return &testHostService{
+		TestClipboard: clipboard.TestClipboard{},
+	}
+}
+
+func (t *testHostService) Open(target string) error {
+	lastOpened = target
+	return nil
+}
+
 func TestServer_Copy(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
-	testClipboard := clipboard.NewTestClipboard()
-	server := New(path, testClipboard, nullLogger)
+	hostService := newTestHostService()
+	server := New(path, hostService, nullLogger)
 
 	listener, err := net.Listen("unix", server.path)
 	defer os.Remove(server.path)
@@ -56,7 +73,7 @@ func TestServer_Copy(t *testing.T) {
 	_, err = httpClient.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
 	require.NoError(t, err)
 
-	require.Equal(t, "test 1 2 3", testClipboard.Buffer)
+	require.Equal(t, "test 1 2 3", hostService.Buffer)
 
 	pasteCommand := client.Command{
 		Name:      "paste",
@@ -75,11 +92,42 @@ func TestServer_Copy(t *testing.T) {
 	require.Equal(t, "test 1 2 3", string(body))
 }
 
+func TestServer_Open(t *testing.T) {
+	nullLogger := log.New(io.Discard, "", log.LstdFlags)
+
+	hostService := newTestHostService()
+	server := New(path, hostService, nullLogger)
+
+	listener, err := net.Listen("unix", server.path)
+	defer os.Remove(server.path)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		err := server.Serve(ctx, listener)
+		require.ErrorIs(t, err, context.Canceled)
+	}()
+
+	openCommand := client.Command{
+		Name:      "open",
+		Arguments: []string{"https://github.com"},
+	}
+
+	data, err := json.Marshal(openCommand)
+	require.NoError(t, err)
+
+	_, err = httpClient.Post("http://unix://"+path, "application/json", bytes.NewReader(data))
+	require.NoError(t, err)
+
+	require.Equal(t, "https://github.com", lastOpened)
+}
+
 func TestServer_Ping(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
-	testClipboard := clipboard.NewTestClipboard()
-	server := New(path, testClipboard, nullLogger)
+	hostService := newTestHostService()
+	server := New(path, hostService, nullLogger)
 
 	listener, err := net.Listen("unix", server.path)
 	defer os.Remove(server.path)
@@ -112,8 +160,8 @@ func TestServer_Ping(t *testing.T) {
 func TestServer_ExistingSocket(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
-	testClipboard := clipboard.NewTestClipboard()
-	server := New(path, testClipboard, nullLogger)
+	hostService := newTestHostService()
+	server := New(path, hostService, nullLogger)
 
 	if _, err := os.Stat(path); err == nil {
 		os.Remove(path)
