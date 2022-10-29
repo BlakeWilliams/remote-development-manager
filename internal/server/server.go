@@ -18,7 +18,7 @@ import (
 )
 
 type Server struct {
-	host: hostservice.Service
+	host       hostservice.Runner
 	path       string
 	logger     *log.Logger
 	httpServer *http.Server
@@ -39,12 +39,12 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "status":
 		rw.Write([]byte(`{ "status": "running" }`))
 	case "copy":
-		err := s.Copy(command.Arguments[0])
+		err := s.host.Copy(command.Arguments[0])
 		if err != nil {
 			log.Printf("error running copy command: %v", err)
 		}
 	case "open":
-		err := s.Open(command.Arguments[0])
+		err := s.host.Open(command.Arguments[0])
 		if err != nil {
 			log.Printf("error running open command: %v", err)
 		}
@@ -52,7 +52,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		log.Printf("received stop command, shutting down")
 		s.cancel()
 	case "paste":
-		contents, err := s.Paste()
+		contents, err := s.host.Paste()
 		if err != nil {
 			s.logger.Printf("error running paste command: %v", err)
 		} else {
@@ -105,11 +105,11 @@ func (s *Server) Listen(ctx context.Context) error {
 	return s.Serve(ctx, sock)
 }
 
-func New(path string, service hostservice.Service, logger *log.Logger) *Server {
+func New(path string, service hostservice.Runner, logger *log.Logger) *Server {
 	server := &Server{
-		Service: service,
-		path:    path,
-		logger:  logger,
+		host:   service,
+		path:   path,
+		logger: logger,
 	}
 	server.httpServer = &http.Server{
 		Handler:      server,
