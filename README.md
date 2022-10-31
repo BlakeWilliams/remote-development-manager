@@ -21,6 +21,18 @@ mv rdm-linux-amd64 /usr/local/bin/rdm
 chmod +x /usr/local/bin/rdm
 ```
 
+If you are running the server on MacOS you can set up rdm as a
+[launchd](https://www.launchd.info/) service that will automatically start on
+system boot:
+
+```
+$ rdm service install
+Run state:     [Running] done!
+Run `launchctl print gui/501/com.blakewilliams.rdm` for more detail.
+Configured to start at boot. Uninstall using:
+        rdm service uninstall
+```
+
 ## Usage
 
 The following is an example of forwarding an rdm server to a remote host: `ssh
