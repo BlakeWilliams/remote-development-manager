@@ -131,12 +131,7 @@ func serviceStopCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 
 // NewRdmService returns a launchd.Service for the currently running program.
 func rdmService() *launchd.Service {
-	svc, err := launchd.ForRunningProgram("com.blakewilliams.rdm", []string{"server"})
-	if err != nil {
-		fmt.Printf("Something went very wrong, cannot continue: %v\n", err)
-		panic(err)
-	}
-	return svc
+	return launchd.ForRunningProgram("com.blakewilliams.rdm", []string{"server"})
 }
 
 func currentExecutableName() string {

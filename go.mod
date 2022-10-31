@@ -3,7 +3,7 @@ module github.com/blakewilliams/remote-development-manager
 go 1.17
 
 require (
-	github.com/brasic/launchd v0.2.8
+	github.com/brasic/launchd v1.0.0
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.8.1
 )
