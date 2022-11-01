@@ -28,7 +28,7 @@ system boot:
 ```
 $ rdm service install
 Run state:     [Running] done!
-Run `launchctl print gui/501/com.blakewilliams.rdm` for more detail.
+Run `launchctl print gui/501/me.blakewilliams.rdm` for more detail.
 Configured to start at boot. Uninstall using:
         rdm service uninstall
 ```
