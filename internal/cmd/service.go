@@ -36,22 +36,22 @@ func serviceInstallCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			svc := rdmService()
 
 			if svc.IsHealthy() {
-				fmt.Println("service is already installed and running, nothing to do!")
+				logger.Println("service is already installed and running, nothing to do!")
 				return
 			}
 			// Configure launchagent to run `rdm server` at boot
 			if err := svc.Install(); err != nil {
-				fmt.Printf("Problem installing: %v\n", err)
+				logger.Printf("Problem installing: %v\n", err)
 				return
 			}
 
 			// In case the service is not running, start it.
 			if err := svc.Start(); err != nil {
-				fmt.Printf("Problem starting: %v\n", err)
+				logger.Printf("Problem starting: %v\n", err)
 				return
 			}
 
-			fmt.Printf("Configured to start at boot. Uninstall using:\n\t%s service uninstall\n", currentExecutableName())
+			logger.Printf("Configured to start at boot. Uninstall using:\n\t%s service uninstall\n", currentExecutableName())
 		},
 	}
 	return cmd
@@ -65,14 +65,14 @@ func serviceUninstallCmd(ctx context.Context, logger *log.Logger) *cobra.Command
 			svc := rdmService()
 
 			if !svc.InstallState().Is(state.Installed) {
-				fmt.Println("Service is not installed.")
+				logger.Println("Service is not installed.")
 				return
 			}
 			if err := svc.Bootout(true); err != nil {
-				fmt.Printf("Problem uninstalling: %v\n", err)
+				logger.Printf("Problem uninstalling: %v\n", err)
 				return
 			}
-			fmt.Println("Service uninstalled.")
+			logger.Println("Service uninstalled.")
 		},
 	}
 }
@@ -85,19 +85,19 @@ func serviceStartCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			svc := rdmService()
 
 			if svc.RunState().Is(state.Running) {
-				fmt.Println("Service is already running.")
+				logger.Println("Service is already running.")
 				return
 			}
 			if err := svc.Start(); err != nil {
-				fmt.Printf("Problem starting: %v\n", err)
+				logger.Printf("Problem starting: %v\n", err)
 				return
 			}
 			finalState, timedOut := svc.PollUntil(state.Running, 5*time.Second)
 			if timedOut {
-				fmt.Println("Service failed to start. Currently:", finalState.Pretty())
+				logger.Println("Service failed to start. Currently:", finalState.Pretty())
 				return
 			}
-			fmt.Println("Service started.")
+			logger.Println("Service started.")
 		},
 	}
 }
@@ -112,19 +112,19 @@ func serviceStopCmd(ctx context.Context, logger *log.Logger) *cobra.Command {
 			runState := svc.RunState()
 
 			if !runState.Is(state.Running) {
-				fmt.Println("Service is not running, nothing to do.")
+				logger.Println("Service is not running, nothing to do.")
 				return
 			}
 			if err := svc.Stop(); err != nil {
-				fmt.Printf("Problem stopping: %v\n", err)
+				logger.Printf("Problem stopping: %v\n", err)
 				return
 			}
 			finalState, timedOut := svc.PollUntil(state.NotRunning, 5*time.Second)
 			if timedOut {
-				fmt.Println("Service failed to stop. Currently:", finalState.Pretty())
+				logger.Println("Service failed to stop. Currently:", finalState.Pretty())
 				return
 			}
-			fmt.Println("Service stopped.")
+			logger.Println("Service stopped.")
 		},
 	}
 }

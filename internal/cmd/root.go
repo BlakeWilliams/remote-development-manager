@@ -3,8 +3,6 @@ package cmd
 import (
 	"context"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -16,11 +14,7 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at https://github.com/BlakeWilliams/remote-development-manager`,
 }
 
-var LogPath string = filepath.Join(os.TempDir(), "rdm.log")
-
-func Execute(ctx context.Context) error {
-	logger := log.Default()
-
+func Execute(ctx context.Context, logger *log.Logger) error {
 	rootCmd.AddCommand(newServerCmd(ctx, logger))
 	rootCmd.AddCommand(newCopyCmd(ctx, logger))
 	rootCmd.AddCommand(newPasteCmd(ctx, logger))
