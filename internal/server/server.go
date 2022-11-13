@@ -71,6 +71,7 @@ func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	s.cancel = cancel
 
 	go func() {
+		s.logger.Printf("listening on %s", s.path)
 		err := s.httpServer.Serve(listener)
 		if err != nil {
 			cancel()
@@ -78,8 +79,7 @@ func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	}()
 
 	<-ctx.Done()
-
-	return ctx.Err()
+	return s.httpServer.Shutdown(ctx)
 }
 
 func (s *Server) Listen(ctx context.Context) error {
