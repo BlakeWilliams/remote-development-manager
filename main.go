@@ -10,27 +10,30 @@ import (
 	"github.com/blakewilliams/remote-development-manager/internal/cmd"
 )
 
-var LogPath string = os.TempDir() + "rdm.log"
-
 func main() {
-	logger := log.Default()
+	userMessages := log.New(os.Stderr, "", 0)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
+	defer func() {
+		signal.Stop(c)
+		cancel()
+	}()
+
 	go func() {
 		for sig := range c {
-			logger.Printf("received signal %v", sig)
+			userMessages.Printf("received signal %v", sig)
 			cancel()
 		}
 	}()
 
-	err := cmd.Execute(ctx)
+	err := cmd.Execute(ctx, userMessages)
 
 	if err != nil {
-		logger.Printf("error executing command: %v", err)
+		userMessages.Printf("error executing command: %v", err)
 		os.Exit(1)
 	}
 }

@@ -28,7 +28,7 @@ type Server struct {
 func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("could not read request body: %v", err)
+		s.logger.Printf("could not read request body: %v", err)
 	}
 	r.Body.Close()
 
@@ -41,15 +41,15 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "copy":
 		err := s.host.Copy(command.Arguments[0])
 		if err != nil {
-			log.Printf("error running copy command: %v", err)
+			s.logger.Printf("error running copy command: %v", err)
 		}
 	case "open":
 		err := s.host.Open(command.Arguments[0])
 		if err != nil {
-			log.Printf("error running open command: %v", err)
+			s.logger.Printf("error running open command: %v", err)
 		}
 	case "stop":
-		log.Printf("received stop command, shutting down")
+		s.logger.Printf("received stop command")
 		s.cancel()
 	case "paste":
 		contents, err := s.host.Paste()
@@ -71,6 +71,7 @@ func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	s.cancel = cancel
 
 	go func() {
+		s.logger.Printf("HTTP server listening on %s", s.path)
 		err := s.httpServer.Serve(listener)
 		if err != nil {
 			cancel()
@@ -78,8 +79,13 @@ func (s *Server) Serve(ctx context.Context, listener net.Listener) error {
 	}()
 
 	<-ctx.Done()
-
-	return ctx.Err()
+	err := s.httpServer.Shutdown(ctx)
+	if err != nil {
+		s.logger.Printf("HTTP server shutdown (err=%v)", err)
+	} else {
+		s.logger.Println("HTTP server shutdown (clean)")
+	}
+	return err
 }
 
 func (s *Server) Listen(ctx context.Context) error {
@@ -115,6 +121,7 @@ func New(path string, service hostservice.Runner, logger *log.Logger) *Server {
 		Handler:      server,
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 10,
+		ErrorLog:     logger,
 	}
 
 	return server

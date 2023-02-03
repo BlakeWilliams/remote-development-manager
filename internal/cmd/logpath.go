@@ -3,9 +3,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
+
+var LogPath string = filepath.Join(os.TempDir(), "rdm.log")
 
 func newLogpathCmd(ctx context.Context) *cobra.Command {
 	return &cobra.Command{
