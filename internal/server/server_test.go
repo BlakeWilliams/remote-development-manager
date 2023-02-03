@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -17,15 +19,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var path string = client.UnixSocketPath() + ".test"
+func socketPath() string {
+	return fmt.Sprintf("%s%.6f.test", client.UnixSocketPath(), rand.Float64())
+}
 
-var httpClient http.Client = http.Client{
-	Timeout: time.Second * 10,
-	Transport: &http.Transport{
-		DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
-			return net.Dial("unix", path)
+func newHttpClient(path string) *http.Client {
+	return &http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			DialContext: func(_ctx context.Context, _network string, _address string) (net.Conn, error) {
+				return net.Dial("unix", path)
+			},
 		},
-	},
+	}
 }
 
 var lastOpened string
@@ -49,10 +55,12 @@ func TestServer_Copy(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
 	hostService := newTestHostService()
+	path := socketPath()
 	server := New(path, hostService, nullLogger)
+	httpClient := newHttpClient(path)
 
 	listener, err := net.Listen("unix", server.path)
-	defer os.Remove(server.path)
+	defer os.Remove(path)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -96,7 +104,9 @@ func TestServer_Open(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
 	hostService := newTestHostService()
+	path := socketPath()
 	server := New(path, hostService, nullLogger)
+	httpClient := newHttpClient(path)
 
 	listener, err := net.Listen("unix", server.path)
 	defer os.Remove(server.path)
@@ -127,7 +137,9 @@ func TestServer_Ping(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
 	hostService := newTestHostService()
+	path := socketPath()
 	server := New(path, hostService, nullLogger)
+	httpClient := newHttpClient(path)
 
 	listener, err := net.Listen("unix", server.path)
 	defer os.Remove(server.path)
@@ -161,6 +173,7 @@ func TestServer_ExistingSocket(t *testing.T) {
 	nullLogger := log.New(io.Discard, "", log.LstdFlags)
 
 	hostService := newTestHostService()
+	path := socketPath()
 	server := New(path, hostService, nullLogger)
 
 	if _, err := os.Stat(path); err == nil {
