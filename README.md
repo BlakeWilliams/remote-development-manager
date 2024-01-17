@@ -21,6 +21,8 @@ mv rdm-linux-amd64 /usr/local/bin/rdm
 chmod +x /usr/local/bin/rdm
 ```
 
+### Mac daemon installation
+
 If you are running the server on MacOS you can set up rdm as a
 [launchd](https://www.launchd.info/) service that will automatically start on
 system boot:
@@ -32,6 +34,29 @@ Run `launchctl print gui/501/me.blakewilliams.rdm` for more detail.
 Configured to start at boot. Uninstall using:
         rdm service uninstall
 ```
+
+### Linux daemon installation with systemd
+
+If you use systemd you can easily daemonize `rdm` for your user with:
+
+```sh
+systemctl edit --user --force --full rdm.service
+```
+
+That will open your `$EDITOR` and you should fill the file with something like:
+
+```systemd
+[Unit]
+Description=Remote Development Manager
+
+[Service]
+ExecStart=/path/to/rdm server
+ExecStop=/path/to/rdm stop
+```
+
+Once that is done you can use `systemctl --user start rdm` or `systemctl --user stop rdm`
+when you want to start/stop the daemon or `systemctl --user enable rdm` so that it is
+automatically enabled for your user when it logs in.
 
 ## Usage
 
