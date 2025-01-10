@@ -13,7 +13,7 @@ specific.
 
 1. Tap the cask:
    ```bash
-   brew tap BlakeWilliams/remote-development-manager
+   brew tap BlakeWilliams/remote-development-manager https://github.com/BlakeWilliams/remote-development-manager
    ```
 2. Install `rdm`:
    ```bash
