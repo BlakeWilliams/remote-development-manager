@@ -16,7 +16,7 @@ func main() {
 	defer cancel()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	defer func() {
 		signal.Stop(c)
