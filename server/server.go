@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/hostservice"
+	"github.com/blakewilliams/remote-development-manager/client"
+	"github.com/blakewilliams/remote-development-manager/hostservice"
 )
 
 type Server struct {

@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/hostservice/clipboard"
+	"github.com/blakewilliams/remote-development-manager/client"
+	"github.com/blakewilliams/remote-development-manager/hostservice/clipboard"
 	"github.com/stretchr/testify/require"
 )
 

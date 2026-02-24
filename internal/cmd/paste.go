@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/blakewilliams/remote-development-manager/internal/client"
+	"github.com/blakewilliams/remote-development-manager/client"
 	"github.com/spf13/cobra"
 )
 

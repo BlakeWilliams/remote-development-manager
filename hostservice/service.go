@@ -1,8 +1,8 @@
 package hostservice
 
 import (
-	"github.com/blakewilliams/remote-development-manager/internal/hostservice/clipboard"
-	"github.com/blakewilliams/remote-development-manager/internal/hostservice/open"
+	"github.com/blakewilliams/remote-development-manager/hostservice/clipboard"
+	"github.com/blakewilliams/remote-development-manager/hostservice/open"
 )
 
 // Runner is the set of functionalities made available by the server to the client.

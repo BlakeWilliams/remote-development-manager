@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/blakewilliams/remote-development-manager/internal/client"
-	"github.com/blakewilliams/remote-development-manager/internal/hostservice"
-	"github.com/blakewilliams/remote-development-manager/internal/server"
+	"github.com/blakewilliams/remote-development-manager/client"
+	"github.com/blakewilliams/remote-development-manager/hostservice"
+	"github.com/blakewilliams/remote-development-manager/server"
 	"github.com/spf13/cobra"
 )
 
